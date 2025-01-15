@@ -1,27 +1,10 @@
 from __future__ import annotations
 
-import os
-from typing import Callable, Generator, Literal, NamedTuple, overload
+from typing import Callable, Generator, Literal, NamedTuple, TypeAlias, overload
 
-INPUTS_FOLDER = "inputs"
+from .input import get_input_as_grid
 
-
-def _get_input_filename(day: int, year: int, test_input: bool = False) -> str:
-    if test_input:
-        return os.path.join(INPUTS_FOLDER, str(year), f"day{day}-test.txt")
-    return os.path.join(INPUTS_FOLDER, str(year), f"day{day}.txt")
-
-
-def get_input_text(day: int, year: int = 2024, test_input: bool = False) -> str:
-    with open(_get_input_filename(day, year, test_input), "r") as fp:
-        return fp.read()
-
-
-def get_input_as_grid(
-    day: int, year: int = 2024, test_input: bool = False
-) -> list[list[str]]:
-    text = get_input_text(day, year, test_input)
-    return [[char for char in line] for line in text.splitlines()]
+Direction: TypeAlias = Literal["left", "right", "top", "bottom"]
 
 
 class NotGiven:
@@ -57,17 +40,15 @@ class Cell[T = str](NamedTuple):
         return self.i + 1, self.j
 
     @overload
-    def neighbor_type(
-        self, neighbor: Cell[T], strict: Literal[True]
-    ) -> Literal["left", "right", "top", "bottom"]: ...
+    def neighbor_type(self, neighbor: Cell[T], strict: Literal[True]) -> Direction: ...
     @overload
     def neighbor_type(
         self, neighbor: Cell[T], strict: bool = False
-    ) -> Literal["left", "right", "top", "bottom"] | None: ...
+    ) -> Direction | None: ...
 
     def neighbor_type(
         self, neighbor: Cell[T], strict: bool = False
-    ) -> Literal["left", "right", "top", "bottom"] | None:
+    ) -> Direction | None:
         lateral_distance = abs(neighbor.i - self.i) + abs(neighbor.j - self.j)
         if lateral_distance != 1:
             if strict:
@@ -199,6 +180,8 @@ class Grid[T = str]:
         ]
 
     def print_with_accent_at_i_j(self, i: int, j: int) -> None:
+        from rich import print
+
         text = ""
         for x in range(len(self)):
             for y in range(len(self[x])):
@@ -214,6 +197,8 @@ class Grid[T = str]:
         print(text)
 
     def print_with_accent_for_item(self, item: T) -> None:
+        from rich import print
+
         text = ""
         for x in range(len(self)):
             for y in range(len(self[x])):
